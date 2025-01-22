@@ -1,16 +1,16 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from .models import User, ChatMessage, MessageContent, Group, GrpUser
+from .models import Member, ChatMessage, MessageContent, Group, GrpUser
 import json
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"chat_{self.room_name}"
-
+    
         # Use sync_to_async to perform the database query
-        self.user = await sync_to_async(self.get_user)("hasti")
-
+        self.user = await sync_to_async(self.get_user)(self.scope["user"].username)
+        
         if self.user:
             print(f"User {self.user.username} connected to room {self.room_name}")
         else:
@@ -34,10 +34,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
-
+        sender = text_data_json["sender"]
         message_content = await sync_to_async(MessageContent.objects.create)(content=message)
         
-        user = await sync_to_async(self.get_user)("hasti")
+        user = await sync_to_async(self.get_user)(self.scope["user"].username)
         group = await sync_to_async(Group.objects.get)(name=self.room_name)
         
         try:
@@ -50,19 +50,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             grp_user=grp_user,
             message_content=message_content
         )
-
         await self.channel_layer.group_send(
-            self.room_group_name, {"type": "chat.message", "message": message}
+            self.room_group_name, {"type": "chat.message", "message": message , "sender": sender}
         )
 
     async def chat_message(self, event):
         message = event["message"]
-
-        await self.send(text_data=json.dumps({"message": message}))
+        sender = event["sender"]
+        await self.send(text_data=json.dumps({"message": message, "sender": sender}))
 
     def get_user(self, user):
         if user:
-            return User.objects.get(username=user)
+            return Member.objects.get(username=user)
         return None
 
     async def send_chat_history(self):

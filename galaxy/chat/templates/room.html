@@ -12,18 +12,32 @@
     <input id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
     {{ room_name|json_script:"room-name" }}
+    {{ user_name|json_script:"user-name" }}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        let chatSocket = null;
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        );
-
-        const currentUser = "hasti";  // Get the current username from Django template
+        istrue = window.location.host === '127.0.0.1:8000';
+        
+        if (istrue) {
+            chatSocket = new WebSocket(
+                'ws://'
+                + window.location.host
+                + '/ws/chat/'
+                + roomName
+                + '/'
+            );
+        }
+        else {
+            chatSocket = new WebSocket(
+                'wss://'
+                + window.location.host
+                + '/ws/chat/'
+                + roomName
+                + '/'
+            );
+        }
+        const currentUser = JSON.parse(document.getElementById('user-name').textContent);  // Get the current username from Django template
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
@@ -33,7 +47,7 @@
             
             // Create a new message element
             const messageElement = document.createElement('div');
-            
+           
             if (isCurrentUser || data.sender === undefined) {
                 messageElement.classList.add('text-end');
             } else {
@@ -62,7 +76,8 @@
             
             if (message) {
                 chatSocket.send(JSON.stringify({
-                    'message': message
+                    'message': message,
+                    'sender': currentUser
                 }));
             }
                 
