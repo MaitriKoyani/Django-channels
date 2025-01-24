@@ -20,6 +20,24 @@ class Member(models.Model):
     @property
     def is_authenticated(self):
         return True
+    
+    def delete(self, *args, **kwargs):
+        member = Member.objects.filter(username=self.username).first()
+        for grp_user in member.grpuser_set.all():
+                    print(grp_user)
+                    if grp_user.group.personal or grp_user.group.grpuser_set.count() == 1:
+                        
+                        gu = grp_user.group
+                        guser = GrpUser.objects.filter(group=gu).all()
+                        chat_messages = ChatMessage.objects.filter(grp_user__in=guser).all()
+                        for chat_message in chat_messages:
+                            print(chat_message.message_content)
+                            chat_message.message_content.delete() 
+
+                        chat_messages.delete()
+                        grp_user.group.delete()
+        super(Member, self).delete(*args, **kwargs)
+
 
     def __str__(self):
         return self.username
@@ -38,6 +56,7 @@ class GrpUser(models.Model):
 
     class Meta:
         unique_together = ('group', 'user')
+
 
     def __str__(self):
         return f"{self.user.username} in {self.group.name}"

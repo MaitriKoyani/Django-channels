@@ -25,11 +25,11 @@ SECRET_KEY = 'django-insecure-gwj2sq@4dcdh(m14pyp-2gpicf^z)#42t#6_j1*cax@@sh3dsx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','81a0-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app','localhost']
+ALLOWED_HOSTS = ['127.0.0.1','8be5-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app','localhost']
 
 # AUTH_USER_MODEL = 'chat.Member'
 
-CSRF_TRUSTED_ORIGINS = ['https://81a0-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://8be5-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app']
 
 # Application definition
 

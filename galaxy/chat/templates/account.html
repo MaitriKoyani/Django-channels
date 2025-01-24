@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+{% block body %}
+<div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border border-secondary border-3 rounded-3 shadow p-5 m-2 bg-dark text-light">
+    <div class="m-2 mt-5">
+        <div class="m-2">Username : {{user.username}}</div>
+        <div claass="m-2">Email : {{user.email}}</div>
+        <div class="m-2"><a href="/deleteaccount/" class="btn btn-outline-light">Delete Account</a></div>
+    </div>
+    
+<a href="/home/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> back</a> 
+
+</div>
+{% endblock %}

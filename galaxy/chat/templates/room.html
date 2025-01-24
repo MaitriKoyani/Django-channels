@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% block body %}
+<div class="text-center fw-bold m-2 fs-3 p-2" style="font-family: cursive; color: rgb(76, 34, 49);">{{ room_name }}</div>
 <div class="container border border-2 mt-2 p-5 w-50">
+    
     <div id="chat-log" class="m-2 "></div>
     <input id="chat-message-input" type="text" class="m-2 w-100"><br>
     <input id="chat-message-submit" type="button" value="Send" class="m-2">

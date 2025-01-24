@@ -214,4 +214,35 @@ class LogoutView(APIView):
             return res
         except Exception as e:
             return Response({'error':e},status=status.HTTP_400_BAD_REQUEST)
-        
+
+class DelAccountView(APIView):
+    def get(self, request):
+        try:
+            res = redirect('/register/')
+            
+            token = request.COOKIES.get('token')
+            if token:
+                mtoken = UserToken.objects.filter(token=token).first()
+                if mtoken:
+                    mtoken.delete()
+
+            res.delete_cookie('token')
+            member = Member.objects.filter(username=request.user.username).first()
+            if member:
+                for grp_user in member.grpuser_set.all():
+                    print(grp_user)
+                    if grp_user.group.personal or grp_user.group.grpuser_set.count() == 1:
+                        
+                        gu = grp_user.group
+                        guser = GrpUser.objects.filter(group=gu).all()
+                        chat_messages = ChatMessage.objects.filter(grp_user__in=guser).all()
+                        for chat_message in chat_messages:
+                            print(chat_message.message_content)
+                            chat_message.message_content.delete() 
+
+                        chat_messages.delete()
+                        grp_user.group.delete()
+                member.delete()
+            return res
+        except Exception as e:
+            return Response({'error':e},status=status.HTTP_400_BAD_REQUEST)

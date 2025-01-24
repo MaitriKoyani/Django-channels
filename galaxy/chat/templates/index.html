@@ -10,10 +10,15 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-          
+          {% if user.id %}
           <a class="navbar-brand" href="/account/">
             <img src="{% static 'logo.webp' %}" alt="logo" width="100" height="100">
           </a>
+          {% else %}
+          <a class="navbar-brand" href="/login/">
+            <img src="{% static 'logo.webp' %}" alt="logo" width="100" height="100">
+          </a>
+          {% endif %}
          
           <a class="navbar-brand fs-4 fw-bold" href="/" style="color:  rgb(123, 76, 94); font-family: cursive;">HeartTalk</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,9 +41,9 @@
             <ul class="navbar-nav me-4 ">
                 <li class="nav-item">
                     {% if user.id %}
-                    <a class="me-2 btn btn-outline-secondary" aria-current="page" href="/logout/">Logout{{request.user}}</a>
+                    <a class="me-2 btn btn-outline-secondary" aria-current="page" href="/logout/">Logout {{request.user}}</a>
                     {% else %}
-                    <a class=" me-2 btn btn-outline-secondary" aria-current="page" href="/login/">Login{{request.user}}</a>
+                    <a class=" me-2 btn btn-outline-secondary" aria-current="page" href="/login/">Login {{request.user}}</a>
                     {% endif %}
                 </li>
               </ul>
