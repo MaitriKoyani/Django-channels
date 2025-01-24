@@ -84,6 +84,21 @@ class UserToken(models.Model):
         return f"Token for {self.user.username}"
 
 
+class Friends(models.Model):
+    user = models.ForeignKey(Member, on_delete=models.CASCADE)
+    friend = models.ManyToManyField(Member, related_name='friend')
+    
+    def __str__(self):
+        return f"{self.user.username} friends"
+
+class Request(models.Model):
+    receiver = models.ForeignKey(Member, on_delete=models.CASCADE)
+    sender = models.ManyToManyField(Member, related_name='sender')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.receiver.username} request"
+
 class CustomTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         
