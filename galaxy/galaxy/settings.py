@@ -25,15 +25,16 @@ SECRET_KEY = 'django-insecure-gwj2sq@4dcdh(m14pyp-2gpicf^z)#42t#6_j1*cax@@sh3dsx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','ffda-2401-4900-8817-f041-bde5-afaa-959f-6a8.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1','81a0-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app','localhost']
 
 # AUTH_USER_MODEL = 'chat.Member'
 
-CSRF_TRUSTED_ORIGINS = ['https://ffda-2401-4900-8817-f041-bde5-afaa-959f-6a8.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://81a0-2401-4900-8fc5-c8f1-698d-bffb-1cdb-d899.ngrok-free.app']
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'daphne',
     'chat',
     'channels',
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -138,6 +140,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:8000',
+      
+    
+]
+CORS_ALLOW_CREDENTIALS = True
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

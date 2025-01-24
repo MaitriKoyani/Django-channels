@@ -1,0 +1,125 @@
+
+{% extends 'index.html' %}
+{% block body %}
+<div id="chat-log" class=""></div>
+
+</div><br>
+<input id="chat-message-input" type="text" size="100"><br>
+<input id="chat-message-submit" type="button" value="Send">
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            function getCookie(name) {
+                let cookieArr = document.cookie.split(";");
+
+                // Iterate over all cookies
+                for (let i = 0; i < cookieArr.length; i++) {
+                    let cookie = cookieArr[i].trim();
+
+                    // Check if the cookie starts with the given name followed by an '=' sign
+                    if (cookie.startsWith(name + "=")) {
+         
+               return cookie.substring(name.length + 1);
+                    }
+                }
+                return null;  // Return null if the cookie is not found
+            }
+            function getCSRFToken() {
+                let cookies = document.cookie.split('; ');
+                for (let i = 0; i < cookies.length; i++) {
+                    let [key, value] = cookies[i].split('=');
+                    if (key === 'csrftoken') {
+                        return value;
+                    }
+                }
+                return '';
+            }
+            const token = getCookie('token');
+            console.log(token);
+            fetch('http://localhost:8000/api/room/', {
+                    method: 'POST',
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`,
+                        'X-CSRFToken': getCSRFToken()  
+                    },
+                    body:JSON.stringify({
+                        'chat_name': chat_name
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // const membersList = document.getElementById('members-list');
+                    // const groupsList = document.getElementById('groups-list');
+                    // data.members.forEach(member => {
+                    //     let li = document.createElement('li');
+                    //     li.textContent = member.username;
+                    //     li.classList.add('list-group-item','d-flex','fs-4');
+
+                    //     // Create form for each member
+                    //     let form = document.createElement('form');
+                    //     form.method = 'POST';
+                    //     form.action = '/room/';
+
+                    //     let csrfInput = document.createElement('input');
+                    //     csrfInput.type = 'hidden';
+                    //     csrfInput.name = 'csrfmiddlewaretoken';
+                    //     csrfInput.value = getCSRFToken();
+
+                    //     let input = document.createElement('input');
+                    //     input.type = 'hidden';
+                    //     input.name = 'chat_name';
+                    //     input.value = member.username;
+
+                    //     let button = document.createElement('button');
+                    //     button.type = 'submit';
+                    //     button.textContent = 'Chat';
+                    //     button.classList.add('btn', 'btn-primary', 'ms-5');
+
+                    //     form.appendChild(csrfInput);
+                    //     form.appendChild(input);
+                    //     form.appendChild(button);
+                    //     li.appendChild(form);
+                    //     membersList.appendChild(li);
+                    // });
+
+                    // data.groups.forEach(group => {
+                    //     let li = document.createElement('li');
+                    //     console.log(group.group_name);
+                    //     li.textContent = group.group_name;
+                    //     li.classList.add('list-group-item','d-flex','fs-4');
+
+                    //     // Create form for each group
+                    //     let form = document.createElement('form');
+                    //     form.method = 'POST';
+                    //     form.action = '/room/';
+
+                    //     let csrfInput = document.createElement('input');
+                    //     csrfInput.type = 'hidden';
+                    //     csrfInput.name = 'csrfmiddlewaretoken';
+                    //     csrfInput.value = getCSRFToken();
+
+                    //     let input = document.createElement('input');
+                    //     input.type = 'hidden';
+                    //     input.name = 'chat_name';
+                    //     input.value = group.group_name;
+
+                    //     let button = document.createElement('button');
+                    //     button.type = 'submit';
+                    //     button.textContent = 'Chat';
+                    //     button.classList.add('btn', 'btn-primary', 'ms-5');
+
+                    //     form.appendChild(csrfInput);
+                    //     form.appendChild(input);
+                    //     form.appendChild(button);
+                    //     li.appendChild(form);
+                    //     groupsList.appendChild(li);
+                    // });
+
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+{% endblock %}
+    

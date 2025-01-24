@@ -1,0 +1,36 @@
+{% extends 'index.html' %}
+{% block body %}
+<div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border border-secondary border-3 rounded-3 shadow p-5 m-2 ">
+
+<form action="/api/login/" method="POST" id="login-form" class="m-3">
+    <div class="fw-bold">{{msg}}</div>
+    <div class="row mb-3 ">
+        <label for="iuname" class="col-sm-2 col-form-label fw-bold">Username</label>
+        <div class="col-sm-10">
+        <input type="text" class="form-control" id="iuname" name="username" required>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="ipass" class="col-sm-2 col-form-label fw-bold">Password</label>
+        <div class="col-sm-10">
+        <input type="password" class="form-control" id="ipass" name="password" required>
+        </div>
+    </div>
+    <div>
+        
+        <a href="/forgotpassword/" >Forgot Password?</a>
+    </div>
+    <div class="my-3">
+        <button type="submit" class="btn" style="background-color:rgb(192, 103, 87);">Login</button>
+    </div>
+    
+     
+    <div>
+        <span>Don't have an account?</span>
+        <a href="/register/">Register</a>
+    </div>
+</form>
+<a href="/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> skip</a> 
+
+</div>
+{% endblock %}

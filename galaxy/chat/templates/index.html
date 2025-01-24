@@ -1,26 +1,60 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <title>Chat Rooms</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartTalk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 </head>
 <body>
-    What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="room-name-submit" type="button" value="Enter">
-
-    <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
-                document.querySelector('#room-name-submit').click();
-            }
-        };
-
-        document.querySelector('#room-name-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
-            window.location.pathname = '/chat/' + roomName + '/';
-        };
-    </script>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+          
+          <a class="navbar-brand" href="/account/">
+            <img src="{% static 'logo.webp' %}" alt="logo" width="100" height="100">
+          </a>
+         
+          <a class="navbar-brand fs-4 fw-bold" href="/" style="color:  rgb(123, 76, 94); font-family: cursive;">HeartTalk</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto">
+              <li class="nav-item">
+                {% if user.id %}
+                <a class="nav-link active fs-5" aria-current="page" href="/home/">Home</a>
+                {% else %}
+                <a class="nav-link active fs-5" aria-current="page" href="/login/">Home</a>
+                {% endif %}
+              </li>
+            </ul>
+            <!-- <form class="d-flex me-3">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success" type="submit">Search</button>
+            </form> -->
+            <ul class="navbar-nav me-4 ">
+                <li class="nav-item">
+                    {% if user.id %}
+                    <a class="me-2 btn btn-outline-secondary" aria-current="page" href="/logout/">Logout{{request.user}}</a>
+                    {% else %}
+                    <a class=" me-2 btn btn-outline-secondary" aria-current="page" href="/login/">Login{{request.user}}</a>
+                    {% endif %}
+                </li>
+              </ul>
+          </div>
+        </div>
+      </nav>
+    {% block body %}
+    <figure class="text-center" style="color: rgb(105, 5, 42);">
+        <blockquote class="blockquote fs-1 me-5 pe-5 my-4">
+          <p>HeartTalk</p>
+        </blockquote>
+        <figcaption class="blockquote-footer ms-5 ps-5">
+            Just say whatever in your mind 
+        </figcaption>
+    </figure>
+    {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

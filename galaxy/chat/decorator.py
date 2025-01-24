@@ -28,6 +28,7 @@ def check_login(view_func):
 def login_required(view_func):
     @wraps(view_func) 
     def wrapper(request, *args, **kwargs):
+
         if not request.user.id:
             try:
                 authentication = CustomTokenAuthentication()

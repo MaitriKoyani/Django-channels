@@ -7,7 +7,9 @@ class CustomTokenMiddleware(MiddlewareMixin):
         # Check for token in the request (header, cookie, etc.)        
         token = request.COOKIES.get('token')
         if not token:
-            return None  
+            token = request.headers.get('Authorization')
+            if not token:
+                return None  
         if token.startswith('Token '):
             token = token[6:]  
         try:
@@ -15,9 +17,7 @@ class CustomTokenMiddleware(MiddlewareMixin):
             mtoken = UserToken.objects.filter(token=token).first()
             
             if mtoken:
-                print(mtoken.user)
                 request.user = mtoken.user
-                print(request.user)
             else:
                 return None
         except Exception as e:  

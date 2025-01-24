@@ -27,7 +27,7 @@ class Member(models.Model):
 class Group(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    personal = models.BooleanField(default=False)
     def __str__(self):
         return self.name
 
@@ -69,9 +69,11 @@ class CustomTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         
         token = request.COOKIES.get('token')
-
+        
         if not token:
-            return None  
+            token = request.headers.get('Authorization')
+            if not token:
+                return None  
         if token.startswith('Token '):
             token = token[6:]  
         
