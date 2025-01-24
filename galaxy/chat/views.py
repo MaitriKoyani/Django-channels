@@ -11,6 +11,7 @@ from .serializers import *
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime
+from django.contrib import messages
 
 # Create your views here.
 
@@ -71,30 +72,26 @@ class RoomView(APIView):
                 GrpUser.objects.create(group=grp,user=isuser)
         elif isgrp:
             chatname = isgrp.name
-        print(chatname)
-        # return Response({"chat_name":chatname},status=status.HTTP_200_OK)
         return render(request,'room.html',{"room_name":chatname,"user_name":request.user.username})
 
 @method_decorator(check_login, name='dispatch')
 class RegisterView(APIView):
     def post(self, request):
         data=request.data
-        print('data')
         if data:
-            print('yes')
             if Member.objects.filter(username=data['username']).exists():
-                return Response({"message":"Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                messages.error(request, 'Username already exists')
+                return redirect('/register/', status=status.HTTP_400_BAD_REQUEST)
             if Member.objects.filter(email=data['email']).exists():
-                return Response({"message":"Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
+                messages.error(request, 'Email already exists')
+                return redirect('/register/', status=status.HTTP_400_BAD_REQUEST)
             member=Member.objects.create(username=data['username'],email=data['email'],password=make_password(data['password']))
-            print('hi user before')
-            print(member)
             token = UserToken.objects.create(user=member)
-            print('hi user after')
             res = setcookietoken(token)
             
             return res
-        return Response({"message":"data not provided",'require':'username,email,password'}, status=status.HTTP_400_BAD_REQUEST)
+        messages.error(request, 'data not provided')
+        return redirect('/register/',status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -112,13 +109,11 @@ class LoginViews(APIView):
 
             user = Member.objects.filter(username= user).first()
             token = UserToken.objects.filter(user=user).first()
-            print('dfghj')
             if token:
-                res = Response({'message':'Already logged in other browser'},status=status.HTTP_400_BAD_REQUEST)
-
-                return res
+                
+                messages.error(request, 'User already logged in other browser')
+                return redirect('/login/',status=status.HTTP_400_BAD_REQUEST)
             else:
-                print('deeppp')
                 username = request.data.get('username')
                 passwor = request.data.get('password')
                 user = Member.objects.filter(username=username).first()
@@ -130,8 +125,9 @@ class LoginViews(APIView):
                         res = setcookietoken(token)
             
                         return res
-                    return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
-                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                    messages.error(request, 'Invalid password')
+                    return redirect('/login/', status=status.HTTP_400_BAD_REQUEST)
+                return redirect('/login/',{'error': 'User not found'},status=status.HTTP_404_NOT_FOUND)
     
         except Exception as e:
             username = request.data.get('username')
@@ -145,8 +141,10 @@ class LoginViews(APIView):
                     res = setcookietoken(token)
                     
                     return res
-                return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                messages.error(request, 'Invalid password')
+                return redirect('/login/', status=status.HTTP_400_BAD_REQUEST)
+            messages.error(request, 'User not found')
+            return redirect('/login/',status=status.HTTP_404_NOT_FOUND)
 
 listofemails = []
 
@@ -246,3 +244,24 @@ class DelAccountView(APIView):
             return res
         except Exception as e:
             return Response({'error':e},status=status.HTTP_400_BAD_REQUEST)
+
+class CreateGroupView(APIView):
+    def get(self, request):
+        members = Member.objects.exclude(username=request.user.username).all()
+        memberserializer = MemberSerializer(members,many=True)
+        return Response({"members":memberserializer.data},status=status.HTTP_200_OK)
+    def post(self, request):
+        print(request.data)
+        gname = request.data.get('gname')
+        members = request.data.getlist('members')
+        print(members)
+        if members != [] and len(members) >= 2 :
+            members.append(request.user.username)
+            group = Group.objects.create(name=gname,personal=False)
+            for member in members:
+                GrpUser.objects.create(group=group,user=Member.objects.filter(username=member).first())
+                print('created')
+            return redirect('/home/')
+        else:
+            messages.error(request, 'Please! Select minimum 2 members.')
+            return redirect('/creategroup/',status=status.HTTP_400_BAD_REQUEST)

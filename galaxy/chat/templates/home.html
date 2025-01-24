@@ -56,7 +56,8 @@
             const token = getCookie('token');
             console.log(window.location.host);
             url = window.location.host === '127.0.0.1:8000' ? 'http://localhost:8000/api/home/' : 'https://'+window.location.host+'/api/home/';
-            fetch('http://localhost:8000/api/home/', {
+            console.log(url);
+            fetch(url, {
                     method: 'GET',
                     headers:{
                         'Content-Type': 'application/json',
@@ -71,12 +72,13 @@
                     data.members.forEach(member => {
                         let li = document.createElement('li');
                         li.textContent = member.username;
-                        li.classList.add('list-group-item','d-flex','fs-4');
+                        li.classList.add('list-group-item','d-flex','fs-4','w-100');
 
                         // Create form for each member
                         let form = document.createElement('form');
                         form.method = 'POST';
                         form.action = '/room/';
+                        
 
                         let csrfInput = document.createElement('input');
                         csrfInput.type = 'hidden';
@@ -122,7 +124,7 @@
                         let button = document.createElement('button');
                         button.type = 'submit';
                         button.textContent = 'Chat';
-                        button.classList.add('btn', 'btn-primary', 'ms-5','chat-button');
+                        button.classList.add('btn', 'btn-secondary', 'ms-5','chat-button');
 
                         form.appendChild(csrfInput);
                         form.appendChild(input);

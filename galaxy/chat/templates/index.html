@@ -50,6 +50,13 @@
           </div>
         </div>
       </nav>
+      {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger p-1 mt-2 ms-5 me-5 ps-5" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %} 
     {% block body %}
     <figure class="text-center" style="color: rgb(105, 5, 42);">
         <blockquote class="blockquote fs-1 me-5 pe-5 my-4">

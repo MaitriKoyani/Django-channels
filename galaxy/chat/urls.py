@@ -17,5 +17,5 @@ urlpatterns = [
     path('creategroup/',TemplateView.as_view(template_name="creategroup.html"), name="creategroup"),
     path('account/',TemplateView.as_view(template_name="account.html"), name="account"),
     path('deleteaccount/', views.DelAccountView.as_view(), name='account'),
-    # path('api/creategroup/', views.CreateGroupView.as_view(), name='creategroup'),
+    path('api/creategroup/', views.CreateGroupView.as_view(), name='creategroup'),
 ]
