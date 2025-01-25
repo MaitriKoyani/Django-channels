@@ -1,13 +1,94 @@
 {% extends 'index.html' %}
 {% block body %}
 <div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border border-secondary border-3 rounded-3 shadow p-5 m-2 bg-dark text-light">
-    <div class="m-2 mt-5">
-        <div class="m-2">Username : {{user.username}}</div>
-        <div claass="m-2">Email : {{user.email}}</div>
-        <div class="m-2"><a href="/deleteaccount/" class="btn btn-outline-light">Delete Account</a></div>
-    </div>
     
-<a href="/home/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> back</a> 
+    <div class="row m-2">
+        <div class="col-4">
+            <div>
+                <img src="" alt="Profile pic" class=" m-2" style = "width: 250px; height: 250px; border-radius: 50%;" id = "pic">
+                
+                <div class="text-light fs-4" id = "username">
+                    {{username}}
+                </div>
+                <a href="/changeProfile/" >🖊️ Change Profile</a>
+            </div>
+        </div>
+        <div class="col-8 text-start align-middle p-5 ">
+            <div class="text-secondary fs-3 row m-2" id = "uid">
 
+            </div>
+                
+            <div class="text-secondary fs-3 row m-2" id = "bio">
+                    
+            </div>    
+                    
+            <div class="row mt-4">
+                <a href="/viewfriends/" class="btn btn-outline-secondary">My Friends</a>
+            </div>
+
+            <div class="row mt-4">
+                <a href="/notifications/" class="btn btn-outline-secondary">Notifications</a>
+            </div>
+    
+            <div class="row mt-4">
+                <a href="/deleteaccount/" class="btn btn-outline-secondary">Delete Account</a>
+            </div>
+    
+        </div>
+    </div>
+    <a href="/home/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> back</a> 
+    
 </div>
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        var pic = document.getElementById('pic');
+        var uid = document.getElementById('uid');
+        var bio = document.getElementById('bio');
+        var username = document.getElementById('username');
+
+        function getCookie(name) {
+            let cookieArr = document.cookie.split(";");
+
+            // Iterate over all cookies
+            for (let i = 0; i < cookieArr.length; i++) {
+                let cookie = cookieArr[i].trim();
+
+                // Check if the cookie starts with the given name followed by an '=' sign
+                if (cookie.startsWith(name + "=")) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;  // Return null if the cookie is not found
+        }
+        function getCSRFToken() {
+            let cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                let [key, value] = cookies[i].split('=');
+                if (key === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+        const token = getCookie('token');
+
+        fetch('/api/account/',{
+                method: 'GET',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                }
+
+            })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data.image);
+            pic.src = data.image;
+            uid.innerHTML = "UserId : " + data.up_id;
+            bio.innerHTML = "Bio : " + data.bio;
+            username.innerHTML = data.username;
+        });
+    });
+</script>
 {% endblock %}

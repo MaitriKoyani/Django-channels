@@ -25,3 +25,14 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['name']
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['image','bio','up_id','username']
+
+    def get_username(self, obj):
+        return obj.user.username

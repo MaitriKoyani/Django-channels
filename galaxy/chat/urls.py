@@ -16,6 +16,13 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('creategroup/',TemplateView.as_view(template_name="creategroup.html"), name="creategroup"),
     path('account/',TemplateView.as_view(template_name="account.html"), name="account"),
+    path('api/account/', views.AccountView.as_view(), name='account'),
     path('deleteaccount/', views.DelAccountView.as_view(), name='account'),
     path('api/creategroup/', views.CreateGroupView.as_view(), name='creategroup'),
+    path('forgotpassword/',TemplateView.as_view(template_name="forgotpassword.html"), name="forgotpassword"),
+    path('api/forgotpassword/', views.ForgotPasswordView.as_view(), name='forgotpassword'),
+    path('resetpassword/',TemplateView.as_view(template_name="resetpassword.html"), name="resetpassword"),
+    path('api/resetpassword/', views.ResetPasswordView.as_view(), name='resetpassword'),
+    path('api/search/', views.SearchView.as_view(), name='search'),
+    path('memberslist/',TemplateView.as_view(template_name="memberslist.html"), name="memberslist"),
 ]

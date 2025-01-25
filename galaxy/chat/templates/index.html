@@ -34,10 +34,10 @@
                 {% endif %}
               </li>
             </ul>
-            <!-- <form class="d-flex me-3">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <form class="d-flex me-3" method="post" action="/api/search/">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
               <button class="btn btn-outline-success" type="submit">Search</button>
-            </form> -->
+            </form>
             <ul class="navbar-nav me-4 ">
                 <li class="nav-item">
                     {% if user.id %}

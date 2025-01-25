@@ -78,6 +78,7 @@ class RoomView(APIView):
 class RegisterView(APIView):
     def post(self, request):
         data=request.data
+        print(data)
         if data:
             if Member.objects.filter(username=data['username']).exists():
                 messages.error(request, 'Username already exists')
@@ -85,8 +86,11 @@ class RegisterView(APIView):
             if Member.objects.filter(email=data['email']).exists():
                 messages.error(request, 'Email already exists')
                 return redirect('/register/', status=status.HTTP_400_BAD_REQUEST)
+            print('okay')
             member=Member.objects.create(username=data['username'],email=data['email'],password=make_password(data['password']))
+            print('before')
             token = UserToken.objects.create(user=member)
+            print('after')
             res = setcookietoken(token)
             
             return res
@@ -100,44 +104,18 @@ class LoginViews(APIView):
         
         return Response(status=status.HTTP_200_OK)
     def post(self, request):
-        try:
-            try:
-                user = request.data.get('username')
-            except Exception as e:
-                print(e)
-                return None
-
-            user = Member.objects.filter(username= user).first()
-            token = UserToken.objects.filter(user=user).first()
-            if token:
-                
-                messages.error(request, 'User already logged in other browser')
-                return redirect('/login/',status=status.HTTP_400_BAD_REQUEST)
-            else:
-                username = request.data.get('username')
-                passwor = request.data.get('password')
-                user = Member.objects.filter(username=username).first()
-                if user:
-                    istrue = check_password(passwor,user.password)
-                    if istrue:
-                        
-                        token = UserToken.objects.create(user=user)
-                        res = setcookietoken(token)
-            
-                        return res
-                    messages.error(request, 'Invalid password')
-                    return redirect('/login/', status=status.HTTP_400_BAD_REQUEST)
-                return redirect('/login/',{'error': 'User not found'},status=status.HTTP_404_NOT_FOUND)
-    
-        except Exception as e:
+        if request.data:
             username = request.data.get('username')
             passwor = request.data.get('password')
             user = Member.objects.filter(username=username).first()
             if user:
                 istrue = check_password(passwor,user.password)
                 if istrue:
-                    
-                    token = UserToken.objects.create(user=user)
+                    token = UserToken.objects.filter(user=user).first()
+                    if token:
+                        token=token
+                    else:
+                        token = UserToken.objects.create(user=user)
                     res = setcookietoken(token)
                     
                     return res
@@ -145,53 +123,68 @@ class LoginViews(APIView):
                 return redirect('/login/', status=status.HTTP_400_BAD_REQUEST)
             messages.error(request, 'User not found')
             return redirect('/login/',status=status.HTTP_404_NOT_FOUND)
+        messages.error(request, 'data not provided')
+        return redirect('/login/',status=status.HTTP_400_BAD_REQUEST)
 
 listofemails = []
 
-class forgotpassword(APIView):
+class ForgotPasswordView(APIView):
     def get(self, request):
 
         return Response(status=status.HTTP_200_OK)
     def post(self, request):
-        email = request.data.get('email')
-        member = Member.objects.filter(email=email).first()
-        subject = 'Password Reset Request'
-        message = 'You have requested to reset your password. Click the link below to set a new password:\n\n' + 'http://127.0.0.1:8000/resetpassword/'
-        recipient_email = email
-        if member :
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL, 
-                    [recipient_email], 
-                    fail_silently=False 
-                )
-                listofemails.append(recipient_email)
-                return Response({'success': 'Email sent successfully'})
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else :
-            return Response({'error': 'User not found of this email'}, status=status.HTTP_404_NOT_FOUND)
 
-class resetpassword(APIView):
-    def get(self, request):
-        return Response(status=status.HTTP_200_OK)
-    def post(self, request):
-        newpassword = request.data.get('newpassword')
-        confirmpassword = request.data.get('confirmpassword')
-        email = listofemails[0]
-        if newpassword == confirmpassword:
-            print('right')
-            member = Member.objects.filter(email=email).first()
+        if request.data:
+            username = request.data.get('username')
+            email = request.data.get('email')
+            member = Member.objects.filter(username=username,email=email).first()
             if member:
-                member.password = make_password(newpassword)
-                member.save()
-                listofemails.clear()
-                print('set')
-                return Response({'success': 'Password reset successfully'},status=status.HTTP_200_OK)
-            else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                subject = 'Password Reset Request'
+                message = 'You have requested to reset your password. Click the link below to set a new password:\n\n' + 'http://127.0.0.1:8000/resetpassword/'
+                recipient_email = email
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL, 
+                        [recipient_email], 
+                        fail_silently=False 
+                    )
+                    listofemails.append(recipient_email)
+                    messages.success(request, 'Password reset link sent successfully')
+                    return redirect('/resetpassword/',status=status.HTTP_200_OK)
+                except Exception as e:
+                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else :
+                messages.error(request, 'User not found enter correct username and email')
+                return redirect('/forgotpassword/',status=status.HTTP_404_NOT_FOUND)
+        messages.error(request, 'data not provided')
+        return redirect('/forgotpassword/',status=status.HTTP_400_BAD_REQUEST)
+
+class ResetPasswordView(APIView):
+    def get(self, request):
+        return Response(status=status.HTTP_200_OK)
+    def post(self, request):
+        if request.data:
+            newpassword = request.data.get('newpassword')
+            confirmpassword = request.data.get('confirmpassword')
+            email = listofemails[0]
+            if newpassword == confirmpassword:
+                member = Member.objects.filter(email=email).first()
+                if member:
+                    member.password = make_password(newpassword)
+                    member.save()
+                    listofemails.clear()
+                    messages.success(request, 'Password reset successfully')
+                    return redirect('/login/',status=status.HTTP_200_OK)
+                else:
+                    messages.error(request, 'User not found')
+                    return redirect('/resetpassword/',status=status.HTTP_404_NOT_FOUND)
+            messages.error(request, 'Password does not match')
+            return redirect('/resetpassword/',status=status.HTTP_400_BAD_REQUEST)
+        messages.error(request, 'data not provided')
+        return redirect('/resetpassword/',status=status.HTTP_400_BAD_REQUEST)
      
 
 @method_decorator(login_required, name='dispatch')
@@ -200,18 +193,28 @@ class LogoutView(APIView):
         try:
             print(request.user,'logout')
             res = redirect('/login/')
-            
             token = request.COOKIES.get('token')
             if token:
                 mtoken = UserToken.objects.filter(token=token).first()
                 if mtoken:
-                    print('delete')
                     mtoken.delete()
 
             res.delete_cookie('token')
             return res
         except Exception as e:
             return Response({'error':e},status=status.HTTP_400_BAD_REQUEST)
+        
+class AccountView(APIView):
+    def get(self, request):
+        user = Member.objects.filter(username=request.user.username).first()
+        if user:
+            profile = Profile.objects.filter(user=user).first()
+            print(profile.image,'dfgh')
+            serializer = ProfileSerializer(profile)
+            print(serializer.data)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        messages.error(request, 'User not found')
+        return Response(status=status.HTTP_200_OK)
 
 class DelAccountView(APIView):
     def get(self, request):
@@ -235,7 +238,6 @@ class DelAccountView(APIView):
                         guser = GrpUser.objects.filter(group=gu).all()
                         chat_messages = ChatMessage.objects.filter(grp_user__in=guser).all()
                         for chat_message in chat_messages:
-                            print(chat_message.message_content)
                             chat_message.message_content.delete() 
 
                         chat_messages.delete()
@@ -251,17 +253,35 @@ class CreateGroupView(APIView):
         memberserializer = MemberSerializer(members,many=True)
         return Response({"members":memberserializer.data},status=status.HTTP_200_OK)
     def post(self, request):
-        print(request.data)
-        gname = request.data.get('gname')
-        members = request.data.getlist('members')
-        print(members)
-        if members != [] and len(members) >= 2 :
-            members.append(request.user.username)
-            group = Group.objects.create(name=gname,personal=False)
-            for member in members:
-                GrpUser.objects.create(group=group,user=Member.objects.filter(username=member).first())
-                print('created')
-            return redirect('/home/')
-        else:
-            messages.error(request, 'Please! Select minimum 2 members.')
-            return redirect('/creategroup/',status=status.HTTP_400_BAD_REQUEST)
+        if request.data:
+            gname = request.data.get('gname')
+            members = request.data.getlist('members')
+            if members != [] and len(members) >= 2 :
+                members.append(request.user.username)
+                group = Group.objects.create(name=gname,personal=False)
+                for member in members:
+                    GrpUser.objects.create(group=group,user=Member.objects.filter(username=member).first())
+                    print('created')
+                return redirect('/home/')
+            else:
+                messages.error(request, 'Please! Select minimum 2 members.')
+                return redirect('/creategroup/',status=status.HTTP_400_BAD_REQUEST)
+        messages.error(request, 'data not provided')
+        return redirect('/creategroup/',status=status.HTTP_400_BAD_REQUEST)
+
+class SearchView(APIView):
+    def get(self, request):
+        return Response(status=status.HTTP_200_OK)
+    def post(self, request):
+        if request.data:
+            search = request.data.get('search')
+            members = Member.objects.filter(username__icontains=search).all()
+            members = members.exclude(username=request.user.username)
+            if len(members) != 0:
+                    
+                return render(request,'memberslist.html',{"members":members},status=status.HTTP_200_OK)
+            messages.error(request, 'User not found')
+            return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
+        messages.error(request, 'data not provided')
+        return redirect('/home/',status=status.HTTP_400_BAD_REQUEST)
+

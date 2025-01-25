@@ -2,7 +2,8 @@ from django.db import models
 import uuid
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-
+import random
+uid = random.randint(1000000, 9999999)
 # Create your models here.
 
 class Member(models.Model):
@@ -21,22 +22,37 @@ class Member(models.Model):
     def is_authenticated(self):
         return True
     
+    def save(self, *args, **kwargs):
+        super(Member, self).save(*args, **kwargs)
+        try:
+            Profile.objects.create(user=self)
+        except Exception as e:
+            print(f"Error while creating profile for member {self.username}: {e}")
+        
+    
     def delete(self, *args, **kwargs):
-        member = Member.objects.filter(username=self.username).first()
-        for grp_user in member.grpuser_set.all():
-                    print(grp_user)
-                    if grp_user.group.personal or grp_user.group.grpuser_set.count() == 1:
-                        
-                        gu = grp_user.group
-                        guser = GrpUser.objects.filter(group=gu).all()
-                        chat_messages = ChatMessage.objects.filter(grp_user__in=guser).all()
-                        for chat_message in chat_messages:
-                            print(chat_message.message_content)
-                            chat_message.message_content.delete() 
+        try:
+            for grp_user in self.grpuser_set.all():
+                print(grp_user)
+                
+                if grp_user.group.personal or not grp_user.group.grpuser_set.exclude(id=grp_user.id).exists():
+                    
+                    gu = grp_user.group
+                    guser = GrpUser.objects.filter(group=gu)
+                    chat_messages = ChatMessage.objects.filter(grp_user__in=guser)
+                    
+                    for chat_message in chat_messages:
+                        print(chat_message.message_content)
+                        chat_message.delete()  # Deleting chat message safely
+                    
+                    chat_messages.delete()
+                    gu.delete()
+            
+            super(Member, self).delete(*args, **kwargs)
+        
+        except Exception as e:
+            print(f"Error while deleting member {self.username}: {e}")
 
-                        chat_messages.delete()
-                        grp_user.group.delete()
-        super(Member, self).delete(*args, **kwargs)
 
 
     def __str__(self):
@@ -97,7 +113,20 @@ class Request(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        
         return f"{self.receiver.username} request"
+
+
+class Profile(models.Model):
+    
+    user = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='profile')
+    up_id = models.CharField(max_length=255, unique=True,default=random.randint(1000, 9999)+random.randint(1000, 9999))
+    image = models.ImageField(default='profile_pics/default.jpg', upload_to='profile_pics')
+    bio = models.CharField(max_length=255,default='Enjoying Chat')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} profile"
 
 class CustomTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
