@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% block body %}
 <div class="container  p-2">
+    {% if request.user.receiver.first %}
+    {% with members=request.user.receiver.first.sender.all %}
     {% for member in members %}
     <div class="row m-2 border border-secondary bg-dark text-light rounded-3 w-50">
         <div class="col-4">
@@ -16,20 +18,14 @@
             <div class="text-secondary fs-3 row m-2" id = "uid">{{member.profile.up_id}}</div>
         </div>
         <div class="col-8 text-start align-middle p-5 ">
-            {% with frd=request.user.friends.first %}
-                {% if frd and member in frd.friend.all %}
-                    <a class="btn btn-outline-secondary">friend</a>
-                {% elif member.receiver.first and request.user in member.receiver.first.sender.all %}
-                    <a class="btn btn-outline-secondary">requested</a>
-                {% else %}
-                    <a href="/api/addrequestfriend/{{member.id}}/" class="btn btn-outline-secondary">request</a>
-                {% endif %}
-            {% endwith %}
-
+            <a href="/api/addfriend/{{member.id}}/" class="btn btn-outline-secondary">Accept friend request</a>
         </div>
     </div>
     {% endfor %} 
-    <!-- <a href="/home/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> back</a>  -->
+    {% endwith %}
+    {% else %}
+    <div class="row m-2 border border-secondary bg-dark text-light rounded-3 w-50 p-5">No notifications</div>
+    {% endif %}
 </div>
 
 {% endblock %}

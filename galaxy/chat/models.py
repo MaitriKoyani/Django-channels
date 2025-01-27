@@ -101,14 +101,14 @@ class UserToken(models.Model):
 
 
 class Friends(models.Model):
-    user = models.ForeignKey(Member, on_delete=models.CASCADE)
+    user = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='friends')
     friend = models.ManyToManyField(Member, related_name='friend')
     
     def __str__(self):
         return f"{self.user.username} friends"
 
 class Request(models.Model):
-    receiver = models.ForeignKey(Member, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(Member, on_delete=models.CASCADE,related_name='receiver')
     sender = models.ManyToManyField(Member, related_name='sender')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -116,11 +116,14 @@ class Request(models.Model):
         
         return f"{self.receiver.username} request"
 
+def generate_unique_id():
+
+    return str(random.randint(1000000, 9999999))
 
 class Profile(models.Model):
     
     user = models.OneToOneField(Member, on_delete=models.CASCADE, related_name='profile')
-    up_id = models.CharField(max_length=255, unique=True,default=random.randint(1000, 9999)+random.randint(1000, 9999))
+    up_id = models.CharField(max_length=255, unique=True,default=generate_unique_id)
     image = models.ImageField(default='profile_pics/default.jpg', upload_to='profile_pics')
     bio = models.CharField(max_length=255,default='Enjoying Chat')
     created_at = models.DateTimeField(auto_now_add=True)

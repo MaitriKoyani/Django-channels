@@ -32,10 +32,9 @@ def setcookietoken(token):
 @method_decorator(login_required, name='dispatch')
 class HomeView(APIView):
     def get(self, request):
-        print(request,request.user)
         if request.user.is_authenticated :
             user = request.user
-            members = Member.objects.exclude(username=user.username).all()
+            members = Friends.objects.filter(user=user).first().friend.all()
             group = GrpUser.objects.filter(user=user).all()
             gname=[]
             for g in group:
@@ -209,9 +208,7 @@ class AccountView(APIView):
         user = Member.objects.filter(username=request.user.username).first()
         if user:
             profile = Profile.objects.filter(user=user).first()
-            print(profile.image,'dfgh')
             serializer = ProfileSerializer(profile)
-            print(serializer.data)
             return Response(serializer.data,status=status.HTTP_200_OK)
         messages.error(request, 'User not found')
         return Response(status=status.HTTP_200_OK)
@@ -277,11 +274,71 @@ class SearchView(APIView):
             search = request.data.get('search')
             members = Member.objects.filter(username__icontains=search).all()
             members = members.exclude(username=request.user.username)
+            frd = Friends.objects.filter(user = request.user).first()
             if len(members) != 0:
-                    
+                
                 return render(request,'memberslist.html',{"members":members},status=status.HTTP_200_OK)
             messages.error(request, 'User not found')
             return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
         messages.error(request, 'data not provided')
         return redirect('/home/',status=status.HTTP_400_BAD_REQUEST)
+    
+class AddRequestFriendView(APIView):
+    def get(self, request,pk):
+        sender = Member.objects.filter(username=request.user.username).first()
+        member = Member.objects.filter(id=pk).first()
+        receiver = Request.objects.filter(receiver=member).first()
+        if sender and receiver:
+            try:
+                receiver.sender.add(sender)
+            except Exception as e:
+                print(e)
+            return redirect('/home/')
+        elif sender and not receiver:
+            try:
+                receiver = Request.objects.create(receiver=member)
+                receiver.sender.add(sender)
+            except Exception as e:
+                print(e)
+            return redirect('/home/')
+        messages.error(request, 'User not found')
+        return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
 
+class AddFriendView(APIView):
+    def get(self, request,pk):
+        
+        user = Member.objects.filter(username=request.user.username).first()
+        if user:
+            frd = Friends.objects.filter(user=user).first()
+            if frd:
+                frd.friend.add(Member.objects.filter(id=pk).first())
+            else:
+                frd = Friends.objects.create(user=user)
+                frd.friend.add(Member.objects.filter(id=pk).first())
+            receiver = Request.objects.filter(receiver=user).first()
+            if receiver:
+                try:
+                    receiver.sender.remove(Member.objects.filter(id=pk).first())
+                    if receiver.sender.count() == 0:
+                        receiver.delete()
+                except Exception as e:
+                    print(e)
+            return redirect('/home/')
+        messages.error(request, 'User not found')
+        return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
+    
+class RemoveFriendView(APIView):
+    def get(self, request,pk):
+        user = Member.objects.filter(username=request.user.username).first()
+        if user:
+            frd = Friends.objects.filter(user=user).first()
+            if frd:
+                try:
+                    frd.friend.remove(Member.objects.filter(id=pk).first())
+                    if frd.friend.count() == 0:
+                        frd.delete()
+                except Exception as e:
+                    print(e)
+            return redirect('/viewfriends/')
+        messages.error(request, 'User not found')
+        return redirect('/home/',status=status.HTTP_404_NOT_FOUND)

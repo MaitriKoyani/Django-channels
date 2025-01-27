@@ -25,4 +25,9 @@ urlpatterns = [
     path('api/resetpassword/', views.ResetPasswordView.as_view(), name='resetpassword'),
     path('api/search/', views.SearchView.as_view(), name='search'),
     path('memberslist/',TemplateView.as_view(template_name="memberslist.html"), name="memberslist"),
+    path('api/addrequestfriend/<int:pk>/', views.AddRequestFriendView.as_view(), name='addrequestfriend'),
+    path('notifications/',TemplateView.as_view(template_name="notifications.html"), name="notifications"),
+    path('api/addfriend/<int:pk>/', views.AddFriendView.as_view(), name='addfriend'),
+    path('viewfriends/',TemplateView.as_view(template_name="friends.html"), name="viewfriends"),
+    path('api/removefriend/<int:pk>/', views.RemoveFriendView.as_view(), name='removefriend'),
 ]
