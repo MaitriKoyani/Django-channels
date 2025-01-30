@@ -3,9 +3,9 @@
 
 {% block body %}
 
-<div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border border-secondary border-3 rounded-3 shadow p-2 m-2 ">
+<div class="h-75 p-5 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle rounded-3 shadow p-2 m-2 " style="border: rgb(123, 76, 94) solid 4px;">
  
-    <form action="/api/changeprofile/" method="POST" id="login-form" class="row g-3 fs-5 m-3 text-start" >
+    <form action="/api/changeprofile/" method="POST" id="login-form" class="row g-3 fs-5 m-3 text-start" enctype="multipart/form-data">
         <div class="fw-bold">{{msg}}</div>
         <div class="col-12 ">
             <label for="iid" class="col-sm-2 col-form-label fw-bold">Profile id</label>
@@ -16,14 +16,16 @@
         <div class="col-12">
             <label for="iimg" class="col-sm-2 col-form-label fw-bold mb-3">Image</label>
             
-            <!-- <div class="col-6 ms-5">Image upload
-            
-            <input type="file" class="form-control" id="iimg" name="file" >
-            </div><div class="col-6 ms-5 text-center">or</div> -->
-            <div class="col-6 ms-5">Enter url
-
-            <input type="url" class="form-control" id="iimg" value="" name="image" >
+            <div class="col-6 ms-5">Image upload
+                <input type="file" class="form-control" id="ifimg" name="files" >
             </div>
+
+            <div class="col-6 ms-5 text-center">or</div>
+
+            <div class="col-6 ms-5">Enter url
+                <input type="url" class="form-control" id="iuimg" name="url" value="">
+            </div>
+
         </div>
         <div class="col-12 ">
             <label for="ibio" class="col-sm-2 col-form-label fw-bold">Bio</label>
@@ -33,7 +35,7 @@
         </div>
         
         <div class="mb-3">
-            <button type="submit" class="btn" style="background-color:rgb(192, 103, 87);">Submit</button>
+            <button type="submit" class="btn " style="background-color: rgb(123, 76, 94);color:  rgb(225, 201, 210);">Submit</button>
         </div>
     </form>
     <a href="/account/" class="btn text-dark fw-bold mb-3 position-absolute top-0 start-0">-> back</a> 

@@ -409,24 +409,26 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_unique_filename(filename):
+    return str(uuid.uuid4()) + '_' + filename
+
 def upload_file(file,uname):
         
         UPLOAD_FOLDER = os.path.join(os.getcwd(), 'media\\profile_pics\\',uname)
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.name):
             
-            filename = settings.get_unique_filename(file.filename)
+            filename = get_unique_filename(file.name)
             
             path = "R:\\programs\\channels\\galaxy\\media\\profile_pics\\"+uname
             
             path=os.path.join(path, filename)
 
-            f = open(path, 'wb')
-            f.write(file)
-            f.save()
-            f.close()
+            with open(path, 'wb') as f:
+                for chunk in file.chunks():
+                    f.write(chunk)
             
             return filename
         else:
@@ -435,15 +437,34 @@ def upload_file(file,uname):
 class ChangeProfileView(APIView):
     def post(self, request):
         if request.data:
-            
+            print('hi')
             user = Member.objects.filter(username=request.user.username).first()
             if user:
-                user.profile.up_id = request.data.get('up_id')
-                user.profile.image = request.data.get('image')
-                user.profile.bio = request.data.get('bio')
-                user.save()
-                return redirect('/profile/')
+                print('hello')
+                profile = Profile.objects.filter(user=user).first()
+                if profile:
+                    profile.up_id = request.data.get('up_id')
+                
+                    print('yey')
+                    print(request.data)
+                    print(request.data.get('files'))
+                    print(request.FILES.get('files'))
+                    if request.FILES:
+                        print('files')
+                        file = request.FILES['files']
+                        
+                        filename = upload_file(file,user.username)
+                        print(filename)
+                        filename = 'profile_pics/'+user.username+'/'+filename
+                        profile.image = filename
+                    else:
+                        print('url')
+                        profile.image = request.data.get('url')
+                    print('bio')
+                    profile.bio = request.data.get('bio')
+                    profile.save()
+                    return redirect('/account/')
             messages.error(request, 'User not found')
-            return redirect('/profile/',status=status.HTTP_404_NOT_FOUND)
+            return redirect('/changeprofile/',status=status.HTTP_404_NOT_FOUND)
         messages.error(request, 'data not provided')
-        return redirect('/profile/',status=status.HTTP_400_BAD_REQUEST)
+        return redirect('/changeprofile/',status=status.HTTP_400_BAD_REQUEST)
