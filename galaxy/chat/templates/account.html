@@ -1,6 +1,6 @@
 {% extends 'index.html' %}
 {% block body %}
-<div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border border-secondary border-3 rounded-3 shadow p-5 m-2 bg-dark text-light">
+<div class="h-50 w-50 d-inline-block text-center  top-50 start-50 position-absolute translate-middle border rounded-3 shadow p-5 m-2 " style="background-color: rgb(123, 76, 94);color:  rgb(225, 201, 210);">
     
     <div class="row m-2">
         <div class="col-4">
@@ -10,28 +10,28 @@
                 <div class="text-light fs-4" id = "username">
                     {{username}}
                 </div>
-                <a href="/changeProfile/" >🖊️ Change Profile</a>
+                <a href="/changeprofile/" class="btn btn-outline-light"> Change Profile</a>
             </div>
         </div>
         <div class="col-8 text-start align-middle p-5 ">
-            <div class="text-secondary fs-3 row m-2" id = "uid">
+            <div class=" fs-3 row m-2" id = "uid">
 
             </div>
                 
-            <div class="text-secondary fs-3 row m-2" id = "bio">
+            <div class="fs-3 row m-2" id = "bio">
                     
             </div>    
                     
             <div class="row mt-4">
-                <a href="/viewfriends/" class="btn btn-outline-secondary">My Friends</a>
+                <a href="/viewfriends/" class="btn btn-outline-light">My Friends</a>
             </div>
 
             <div class="row mt-4">
-                <a href="/notifications/" class="btn btn-outline-secondary">Notifications</a>
+                <a href="/notifications/" class="btn btn-outline-light">Notifications</a>
             </div>
     
             <div class="row mt-4">
-                <a href="/deleteaccount/" class="btn btn-outline-secondary">Delete Account</a>
+                <a href="/deleteaccount/" class="btn btn-outline-light">Delete Account</a>
             </div>
     
         </div>

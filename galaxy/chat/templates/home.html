@@ -1,140 +1,238 @@
 {% extends 'index.html' %}
 {% block body %}
-<figure class="text-center" style="color: rgb(105, 5, 42);">
-    <blockquote class="blockquote fs-1 me-5 pe-5 my-4">
-      <p>HeartTalk</p>
-    </blockquote>
-    <figcaption class="blockquote-footer ms-5 ps-5">
-        Just say whatever in your mind 
-    </figcaption>
-</figure>
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-2"></div>
-          <div class="col-3">
-            <h3 class="text-center m-2 p-2">Members</h3>
-            <ul id="members-list" class="list-group"></ul>
-          </div>
-          <div class="col-3"></div>
-          <div class="col-3">
-            <div class="d-flex">
-                <div class="text-center m-2 p-2 fs-3 fw-bold ">Groups</div>
-                <div><a href="/creategroup/" class="btn btn-outline-secondary btn-sm m-3 mt-4">New</a></div>
+<div class = "container-fluid" style="border:rgb(105, 5, 42) solid;">
+    <div class="row" style="height: 100vh;">
+        <div class="col-3" style="background-color: rgb(123, 76, 94); height: 100%;">
+            <div class="row px-4 border-bottom border-light " >
+                <div class="col-2 pt-2">
+                    <a href="/account/">
+                        <img src="/media/{{user.profile.image}}" alt="Profile pic" class="m-2" style = "width: 50px; height: 50px; border-radius: 50%;" id = "pic">
+                    </a>
+                </div>
+                <div class="col-7 ps-5 pt-4 fs-4 " style="color: rgb(225, 201, 210);">{{user.username}}</div>
+                <div class="col-3 mt-4 mb-2"><a href="/creategroup/" class="btn btn-outline-light btn-sm ">New Group +</a></div>
             </div>
-            <ul id="groups-list" class="list-group"></ul>
-          </div>
-          <div class="col-1"></div>
+            <div class="row px-5" id="list-members">
+    
+            </div>
+        </div>
+        <div class="col-9">
+            {% if room_name %}
+            <div class = "container-fluid">
+                <div class="text-center fw-bold m-2 fs-3 p-2" style="font-family: cursive; color: rgb(76, 34, 49);">{{ room_name }}</div>
+                <div class="container border border-2 my-4 p-5 w-50 overflow-auto" style="height: 800px;">
+                    <div id="chat-log" class="m-2 ">
+                        
+                    </div>
+                    <div class="m-2 position-fixed bottom-0">
+                        <input id="chat-message-input" type="text" class="m-2 w-100"><br>
+                        <input id="chat-message-submit" type="button" value="Send" class="m-2">
+                    </div>
+                    
+                </div>
+            </div>
+                {{ room_name|json_script:"room-name" }}
+                {{ user_name|json_script:"user-name" }}
+                <script>
+                    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+                    let chatSocket = null;
+            
+                    istrue = window.location.host === '127.0.0.1:8000';
+                    
+                    if (istrue) {
+                        chatSocket = new WebSocket(
+                            'ws://'
+                            + window.location.host
+                            + '/ws/chat/'
+                            + roomName
+                            + '/'
+                        );
+                    }
+                    else {
+                        chatSocket = new WebSocket(
+                            'wss://'
+                            + window.location.host
+                            + '/ws/chat/'
+                            + roomName
+                            + '/'
+                        );
+                    }
+                    const currentUser = JSON.parse(document.getElementById('user-name').textContent);  // Get the current username from Django template
+            
+                    chatSocket.onmessage = function(e) {
+                        const data = JSON.parse(e.data);
+                        
+                        // Determine message alignment based on sender
+                        const isCurrentUser = data.sender === currentUser;
+                        
+                        // Create a new message element
+                        const messageElement = document.createElement('div');
+                       
+                        if (isCurrentUser || data.sender === undefined) {
+                            messageElement.classList.add('text-end');
+                        } else {
+                            messageElement.classList.add('text-start');
+                        }
+                        
+                        messageElement.textContent = `${data.sender}: ${data.message}`;
+                        
+                        document.querySelector('#chat-log').appendChild(messageElement);
+                    };
+            
+                    chatSocket.onclose = function(e) {
+                        console.error('Chat socket closed unexpectedly');
+                    };
+            
+                    document.querySelector('#chat-message-input').focus();
+                    document.querySelector('#chat-message-input').onkeyup = function(e) {
+                        if (e.key === 'Enter') {  
+                            document.querySelector('#chat-message-submit').click();
+                        }
+                    };
+            
+                    document.querySelector('#chat-message-submit').onclick = function(e) {
+                        const messageInputDom = document.querySelector('#chat-message-input');
+                        const message = messageInputDom.value;
+                        
+                        if (message) {
+                            chatSocket.send(JSON.stringify({
+                                'message': message,
+                                'sender': currentUser
+                            }));
+                        }
+                            
+                        messageInputDom.value = '';
+                    };
+                </script>
+            {% else %}
+            <figure class="text-center" style="color: rgb(105, 5, 42);">
+                <blockquote class="blockquote fs-1 me-5 pe-5 my-4">
+                <p>HeartTalk</p>
+                </blockquote>
+                <figcaption class="blockquote-footer ms-5 ps-5">
+                    Just say whatever in your mind 
+                </figcaption>
+            </figure>
+            {% endif %}
         </div>
     </div>
-    <script>
+</div>
+
+<script>
         
-        document.addEventListener('DOMContentLoaded', function () {
-            function getCookie(name) {
-                let cookieArr = document.cookie.split(";");
+    document.addEventListener('DOMContentLoaded', function () {
+        function getCookie(name) {
+            let cookieArr = document.cookie.split(";");
 
-                // Iterate over all cookies
-                for (let i = 0; i < cookieArr.length; i++) {
-                    let cookie = cookieArr[i].trim();
+            // Iterate over all cookies
+            for (let i = 0; i < cookieArr.length; i++) {
+                let cookie = cookieArr[i].trim();
 
-                    // Check if the cookie starts with the given name followed by an '=' sign
-                    if (cookie.startsWith(name + "=")) {
-                        return cookie.substring(name.length + 1);
-                    }
+                // Check if the cookie starts with the given name followed by an '=' sign
+                if (cookie.startsWith(name + "=")) {
+                    return cookie.substring(name.length + 1);
                 }
-                return null;  // Return null if the cookie is not found
             }
-            function getCSRFToken() {
-                let cookies = document.cookie.split('; ');
-                for (let i = 0; i < cookies.length; i++) {
-                    let [key, value] = cookies[i].split('=');
-                    if (key === 'csrftoken') {
-                        return value;
-                    }
+            return null;  // Return null if the cookie is not found
+        }
+        function getCSRFToken() {
+            let cookies = document.cookie.split('; ');
+            for (let i = 0; i < cookies.length; i++) {
+                let [key, value] = cookies[i].split('=');
+                if (key === 'csrftoken') {
+                    return value;
                 }
-                return '';
             }
-            const token = getCookie('token');
-            console.log(window.location.host);
-            url = window.location.host === '127.0.0.1:8000' ? 'http://localhost:8000/api/home/' : 'https://'+window.location.host+'/api/home/';
-            console.log(url);
-            fetch(url, {
-                    method: 'GET',
-                    headers:{
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${token}`
-                    }
+            return '';
+        }
+        
+        const token = getCookie('token');
+        console.log(window.location.host);
+        url = window.location.host === '127.0.0.1:8000' ? 'http://localhost:8000/api/home/' : 'https://'+window.location.host+'/api/home/';
+        console.log(url);
+        fetch(url, {
+                method: 'GET',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                }
 
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const membersList = document.getElementById('members-list');
-                    const groupsList = document.getElementById('groups-list');
-                    data.members.forEach(member => {
-                        let li = document.createElement('li');
-                        li.textContent = member.username;
-                        li.classList.add('list-group-item','d-flex','fs-4','w-100');
+            })
+            .then(response => response.json())
+            .then(data => {
+                const membersList = document.getElementById('list-members');
+                if (!data.msg){
+                    
+                
+                data.members.forEach(member => {
+                    let li = document.createElement('button');
+                    
+                    li.classList.add('fs-4','w-100','bg-transparent','border-0');
+                    
+                    li.type = 'submit';
+                    li.style.color = 'rgb(225, 201, 210)';
+                    li.textContent = member.username;
 
-                        // Create form for each member
-                        let form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = '/room/';
-                        
+                    // Create form for each member
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/room/';
+                    form.classList.add('w-100','p-3','border','border-top-0','border-start-0','border-end-0','text-start');
+                    
 
-                        let csrfInput = document.createElement('input');
-                        csrfInput.type = 'hidden';
-                        csrfInput.name = 'csrfmiddlewaretoken';
-                        csrfInput.value = getCSRFToken();
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = getCSRFToken();
 
-                        let input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'chat_name';
-                        input.value = member.username;
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'chat_name';
+                    input.value = member.username;
 
-                        let button = document.createElement('button');
-                        button.type = 'submit';
-                        button.textContent = 'Chat';
-                        button.classList.add('btn', 'btn-secondary', 'ms-5','chat-button');
 
-                        form.appendChild(csrfInput);
-                        form.appendChild(input);
-                        form.appendChild(button);
-                        li.appendChild(form);
-                        membersList.appendChild(li);
-                    });
-                    data.groups.forEach(group => {
-                        let li = document.createElement('li');
-                        li.textContent = group.name;
-                        li.classList.add('list-group-item','d-flex','fs-4');
+                    form.appendChild(csrfInput);
+                    form.appendChild(input);
+                    form.appendChild(li);
+                    membersList.appendChild(form);
+                });
+                data.groups.forEach(group => {
+                    let li = document.createElement('button');
+                    
+                    li.classList.add('list-group-item','d-flex','fs-4','w-100','px-5','send');
+                    
+                    li.type = 'submit';
+                   
+                    li.textContent = member.username;
 
-                        // Create form for each group
-                        let form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = '/room/';
+                    // Create form for each member
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/room/';
+                    form.classList.add('w-100');
+                    form.style = 'background-color: rgb(176, 171, 171); border: 1px solid rgb(105, 5, 42);';
 
-                        let csrfInput = document.createElement('input');
-                        csrfInput.type = 'hidden';
-                        csrfInput.name = 'csrfmiddlewaretoken';
-                        csrfInput.value = getCSRFToken();
+                    let csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = getCSRFToken();
 
-                        let input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'chat_name';
-                        input.value = group.name;
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'chat_name';
+                    input.value = group.name;
 
-                        let button = document.createElement('button');
-                        button.type = 'submit';
-                        button.textContent = 'Chat';
-                        button.classList.add('btn', 'btn-secondary', 'ms-5','chat-button');
 
-                        form.appendChild(csrfInput);
-                        form.appendChild(input);
-                        form.appendChild(button);
-                        li.appendChild(form);
-                        groupsList.appendChild(li);
-                    });
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
-    </script>
+                    form.appendChild(csrfInput);
+                    form.appendChild(input);
+                    form.appendChild(li);
+                    membersList.appendChild(form);
+                });
+            }
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    });
+</script>
+
 {% endblock %}
     

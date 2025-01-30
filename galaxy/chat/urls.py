@@ -30,4 +30,6 @@ urlpatterns = [
     path('api/addfriend/<int:pk>/', views.AddFriendView.as_view(), name='addfriend'),
     path('viewfriends/',TemplateView.as_view(template_name="friends.html"), name="viewfriends"),
     path('api/removefriend/<int:pk>/', views.RemoveFriendView.as_view(), name='removefriend'),
+    path('changeprofile/',TemplateView.as_view(template_name="changeprofile.html"), name="changeprofile"),
+    # path('api/changeprofile/', views.ChangeProfileView.as_view(), name='changeprofile'),
 ]

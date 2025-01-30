@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime
 from django.contrib import messages
+import os
 
 # Create your views here.
 
@@ -32,16 +33,26 @@ def setcookietoken(token):
 @method_decorator(login_required, name='dispatch')
 class HomeView(APIView):
     def get(self, request):
+        
         if request.user.is_authenticated :
             user = request.user
-            members = Friends.objects.filter(user=user).first().friend.all()
+            try:
+                members = Friends.objects.filter(user=user).first().friend.all()
+            except Exception as e:
+                print(e)
+                return Response({"msg":"members not found"},status=status.HTTP_404_NOT_FOUND)
+                
             group = GrpUser.objects.filter(user=user).all()
             gname=[]
+            
             for g in group:
                 gu = Group.objects.filter(name=g.group.name,personal=False).first()
                 if gu:
                     gname.append(gu)
-            memberserializer = MemberSerializer(members,many=True)
+            if members:
+                memberserializer = MemberSerializer(members,many=True)
+            else:
+                return Response({"msg":"members not found"},status=status.HTTP_404_NOT_FOUND)
             grpuserserializer = GroupSerializer(gname,many=True)
             return Response({"members":memberserializer.data,"groups":grpuserserializer.data},status=status.HTTP_200_OK)
         else:
@@ -71,7 +82,7 @@ class RoomView(APIView):
                 GrpUser.objects.create(group=grp,user=isuser)
         elif isgrp:
             chatname = isgrp.name
-        return render(request,'room.html',{"room_name":chatname,"user_name":request.user.username})
+        return render(request,'home.html',{"room_name":chatname,"user_name":request.user.username})
 
 @method_decorator(check_login, name='dispatch')
 class RegisterView(APIView):
@@ -246,7 +257,7 @@ class DelAccountView(APIView):
 
 class CreateGroupView(APIView):
     def get(self, request):
-        members = Member.objects.exclude(username=request.user.username).all()
+        members = Friends.objects.filter(user=request.user).first().friend.all()
         memberserializer = MemberSerializer(members,many=True)
         return Response({"members":memberserializer.data},status=status.HTTP_200_OK)
     def post(self, request):
@@ -266,6 +277,7 @@ class CreateGroupView(APIView):
         messages.error(request, 'data not provided')
         return redirect('/creategroup/',status=status.HTTP_400_BAD_REQUEST)
 
+@method_decorator(login_required, name='dispatch')
 class SearchView(APIView):
     def get(self, request):
         return Response(status=status.HTTP_200_OK)
@@ -306,15 +318,31 @@ class AddRequestFriendView(APIView):
 
 class AddFriendView(APIView):
     def get(self, request,pk):
-        
         user = Member.objects.filter(username=request.user.username).first()
+        print(user)
         if user:
             frd = Friends.objects.filter(user=user).first()
             if frd:
-                frd.friend.add(Member.objects.filter(id=pk).first())
+                if Member.objects.filter(id=pk).first() not in frd.friend.all():
+                    frd.friend.add(Member.objects.filter(id=pk).first())
+                frd = Friends.objects.filter(user=Member.objects.filter(id=pk).first()).first()
+                if frd:
+                    if user not in frd.friend.all():
+                        frd.friend.add(user)
+                else:
+                    frd = Friends.objects.create(user=Member.objects.filter(id=pk).first())
+                    frd.friend.add(user)
             else:
                 frd = Friends.objects.create(user=user)
                 frd.friend.add(Member.objects.filter(id=pk).first())
+
+                frd = Friends.objects.filter(user=Member.objects.filter(id=pk).first()).first()
+                if frd:
+                    if user not in frd.friend.all():
+                        frd.friend.add(user)
+                else:
+                    frd = Friends.objects.create(user=Member.objects.filter(id=pk).first())
+                    frd.friend.add(user)
             receiver = Request.objects.filter(receiver=user).first()
             if receiver:
                 try:
@@ -323,7 +351,7 @@ class AddFriendView(APIView):
                         receiver.delete()
                 except Exception as e:
                     print(e)
-            return redirect('/home/')
+            return redirect('/notification/')
         messages.error(request, 'User not found')
         return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
     
@@ -342,3 +370,43 @@ class RemoveFriendView(APIView):
             return redirect('/viewfriends/')
         messages.error(request, 'User not found')
         return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
+
+
+# def upload_file(content,uname):
+        
+#         UPLOAD_FOLDER = os.path.join(os.getcwd(), 'media\\profile_pics\\',uname)
+#         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+#         # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+        
+#         if content:
+            
+#             filename = "profilepic.jpg"
+#             file = content
+#             path = "R:\\programs\\channels\\galaxy\\media\\profile_pics\\"+uname
+            
+#             path=os.path.join(path, filename)
+
+#             f = open(path, 'wb')
+#             f.write(file)
+#             f.save()
+#             f.close()
+            
+#             return filename
+#         else:
+#             print('file not allow')
+
+# class ChangeProfileView(APIView):
+#     def post(self, request):
+#         if request.data:
+            
+#             user = Member.objects.filter(username=request.user.username).first()
+#             if user:
+#                 user.profile.up_id = request.data.get('up_id')
+#                 user.profile.image = request.data.get('image')
+#                 user.profile.bio = request.data.get('bio')
+#                 user.save()
+#                 return redirect('/profile/')
+#             messages.error(request, 'User not found')
+#             return redirect('/profile/',status=status.HTTP_404_NOT_FOUND)
+#         messages.error(request, 'data not provided')
+#         return redirect('/profile/',status=status.HTTP_400_BAD_REQUEST)
