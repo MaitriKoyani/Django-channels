@@ -13,6 +13,8 @@ from django.conf import settings
 from datetime import datetime
 from django.contrib import messages
 import os
+from django.conf import settings
+
 
 # Create your views here.
 
@@ -66,6 +68,7 @@ class RoomView(APIView):
         chatname = request.data.get('chat_name')
         isuser = Member.objects.filter(username=chatname).first()
         isgrp = Group.objects.filter(name=chatname).first()
+        grp = None
         if isuser:
             temp1 = isuser.username+'_'+request.user.username
             grp1 = Group.objects.filter(name=temp1).first()
@@ -73,8 +76,10 @@ class RoomView(APIView):
             grp2 = Group.objects.filter(name=temp2).first()
             if grp1:
                 chatname = grp1.name
+                grp = grp1
             elif grp2:
                 chatname = grp2.name
+                grp = grp2
             else:
                 chatname = temp1
                 grp = Group.objects.create(name=chatname,personal=True)
@@ -82,7 +87,8 @@ class RoomView(APIView):
                 GrpUser.objects.create(group=grp,user=isuser)
         elif isgrp:
             chatname = isgrp.name
-        return render(request,'home.html',{"room_name":chatname,"user_name":request.user.username})
+            grp = isgrp
+        return render(request,'home.html',{"room_name":chatname,"user_name":request.user.username,"group":grp},status=status.HTTP_200_OK)
 
 @method_decorator(check_login, name='dispatch')
 class RegisterView(APIView):
@@ -137,6 +143,7 @@ class LoginViews(APIView):
         return redirect('/login/',status=status.HTTP_400_BAD_REQUEST)
 
 listofemails = []
+listofotp = []
 
 class ForgotPasswordView(APIView):
     def get(self, request):
@@ -148,9 +155,10 @@ class ForgotPasswordView(APIView):
             username = request.data.get('username')
             email = request.data.get('email')
             member = Member.objects.filter(username=username,email=email).first()
+            otp=random.randrange(100000,999999,6)
             if member:
                 subject = 'Password Reset Request'
-                message = 'You have requested to reset your password. Click the link below to set a new password:\n\n' + 'http://127.0.0.1:8000/resetpassword/'
+                message = 'You have requested to reset your password and HeartTalk send you otp for reset password '+str(otp)+' Please don\'t share with anyone.<br> Thank you!!'
                 recipient_email = email
                 
                 try:
@@ -162,8 +170,10 @@ class ForgotPasswordView(APIView):
                         fail_silently=False 
                     )
                     listofemails.append(recipient_email)
-                    messages.success(request, 'Password reset link sent successfully')
-                    return redirect('/resetpassword/',status=status.HTTP_200_OK)
+                    listofotp.append(otp)
+                    print(listofotp)
+                    messages.success(request, 'Password reset otp sent successfully')
+                    return redirect('/checkotp/',status=status.HTTP_200_OK)
                 except Exception as e:
                     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else :
@@ -171,6 +181,19 @@ class ForgotPasswordView(APIView):
                 return redirect('/forgotpassword/',status=status.HTTP_404_NOT_FOUND)
         messages.error(request, 'data not provided')
         return redirect('/forgotpassword/',status=status.HTTP_400_BAD_REQUEST)
+
+class CheckOtpView(APIView):
+    def post(self, request):
+        if request.data:
+            otp = request.data.get('otp')
+            if otp == str(listofotp[0]):
+                listofotp.clear()
+                messages.success(request, 'Otp verified successfully')
+                return redirect('/resetpassword/',status=status.HTTP_200_OK)
+            messages.error(request, 'Invalid otp')
+            return redirect('/checkotp/',status=status.HTTP_400_BAD_REQUEST)
+        messages.error(request, 'data not provided')
+        return redirect('/checkotp/',status=status.HTTP_400_BAD_REQUEST)
 
 class ResetPasswordView(APIView):
     def get(self, request):
@@ -258,6 +281,14 @@ class DelAccountView(APIView):
 class CreateGroupView(APIView):
     def get(self, request):
         members = Friends.objects.filter(user=request.user).first().friend.all()
+        print(members)
+        # for m in members:
+        #     for g in members.exclude(username = m.username):
+        #         if m in g.friends.first().friend.all():
+                    
+
+            # if members.exclude(username = m.username) in m.friends.first().friend.all():
+            #     members = members.exclude(username = m.username)
         memberserializer = MemberSerializer(members,many=True)
         return Response({"members":memberserializer.data},status=status.HTTP_200_OK)
     def post(self, request):
@@ -289,7 +320,7 @@ class SearchView(APIView):
             frd = Friends.objects.filter(user = request.user).first()
             if len(members) != 0:
                 
-                return render(request,'memberslist.html',{"members":members},status=status.HTTP_200_OK)
+                return render(request,'addfriend.html',{"members":members},status=status.HTTP_200_OK)
             messages.error(request, 'User not found')
             return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
         messages.error(request, 'data not provided')
@@ -351,7 +382,7 @@ class AddFriendView(APIView):
                         receiver.delete()
                 except Exception as e:
                     print(e)
-            return redirect('/notification/')
+            return redirect('/notifications/')
         messages.error(request, 'User not found')
         return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
     
@@ -371,42 +402,48 @@ class RemoveFriendView(APIView):
         messages.error(request, 'User not found')
         return redirect('/home/',status=status.HTTP_404_NOT_FOUND)
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
 
-# def upload_file(content,uname):
+def allowed_file(filename):
+    print('file allow')
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def upload_file(file,uname):
         
-#         UPLOAD_FOLDER = os.path.join(os.getcwd(), 'media\\profile_pics\\',uname)
-#         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-#         # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+        UPLOAD_FOLDER = os.path.join(os.getcwd(), 'media\\profile_pics\\',uname)
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        # app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
         
-#         if content:
+        if file and allowed_file(file.filename):
             
-#             filename = "profilepic.jpg"
-#             file = content
-#             path = "R:\\programs\\channels\\galaxy\\media\\profile_pics\\"+uname
+            filename = settings.get_unique_filename(file.filename)
             
-#             path=os.path.join(path, filename)
+            path = "R:\\programs\\channels\\galaxy\\media\\profile_pics\\"+uname
+            
+            path=os.path.join(path, filename)
 
-#             f = open(path, 'wb')
-#             f.write(file)
-#             f.save()
-#             f.close()
+            f = open(path, 'wb')
+            f.write(file)
+            f.save()
+            f.close()
             
-#             return filename
-#         else:
-#             print('file not allow')
+            return filename
+        else:
+            print('file not allow')
 
-# class ChangeProfileView(APIView):
-#     def post(self, request):
-#         if request.data:
+class ChangeProfileView(APIView):
+    def post(self, request):
+        if request.data:
             
-#             user = Member.objects.filter(username=request.user.username).first()
-#             if user:
-#                 user.profile.up_id = request.data.get('up_id')
-#                 user.profile.image = request.data.get('image')
-#                 user.profile.bio = request.data.get('bio')
-#                 user.save()
-#                 return redirect('/profile/')
-#             messages.error(request, 'User not found')
-#             return redirect('/profile/',status=status.HTTP_404_NOT_FOUND)
-#         messages.error(request, 'data not provided')
-#         return redirect('/profile/',status=status.HTTP_400_BAD_REQUEST)
+            user = Member.objects.filter(username=request.user.username).first()
+            if user:
+                user.profile.up_id = request.data.get('up_id')
+                user.profile.image = request.data.get('image')
+                user.profile.bio = request.data.get('bio')
+                user.save()
+                return redirect('/profile/')
+            messages.error(request, 'User not found')
+            return redirect('/profile/',status=status.HTTP_404_NOT_FOUND)
+        messages.error(request, 'data not provided')
+        return redirect('/profile/',status=status.HTTP_400_BAD_REQUEST)

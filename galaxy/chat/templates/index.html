@@ -26,19 +26,42 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
-              <li class="nav-item" style="color: rgb(225, 201, 210);">
+              <li class="nav-item me-2" style="color: rgb(225, 201, 210);">
                 {% if user.id %}
                 <a class="nav-link active fs-5" aria-current="page" href="/home/" style="color: rgb(225, 201, 210);">Home</a>
                 {% else %}
                 <a class="nav-link active fs-5" aria-current="page" href="/login/" style="color: rgb(225, 201, 210);">Home</a>
                 {% endif %}
               </li>
+              
             </ul>
-            <form class="d-flex me-3" method="post" action="/api/search/">
+            <!-- <form class="d-flex me-3" method="post" action="/api/search/">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
               <button class="btn btn-outline-light" type="submit">Search</button>
-            </form>
+            </form> -->
             <ul class="navbar-nav me-4 ">
+              <li class="nav-item me-3">
+                {% if user.id %}
+                <a href="/notifications/" class="btn btn-outline-light position-relative">
+                  Inbox
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
+                    {% if request.user.receiver.first %}
+                      {{request.user.receiver.first.sender.all.count}}
+                    {% else %}
+                      0
+                    {% endif %}
+                    <span class="visually-hidden">unread messages</span>
+                  </span>
+                </a>
+                {% endif %}
+              </li>
+              <li class="nav-item me-2">
+                {% if user.id %}
+                <a href="/addfriend/" class="btn btn-outline-light position-relative">
+                  Add Friends
+                </a>
+                {% endif %}
+              </li>
                 <li class="nav-item">
                     {% if user.id %}
                     <a class="me-2 btn btn-outline-light" aria-current="page" href="/logout/">Logout</a>

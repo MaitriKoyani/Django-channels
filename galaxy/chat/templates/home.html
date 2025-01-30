@@ -19,7 +19,38 @@
         <div class="col-9">
             {% if room_name %}
             <div class = "container-fluid">
-                <div class="text-center fw-bold m-2 fs-3 p-2" style="font-family: cursive; color: rgb(76, 34, 49);">{{ room_name }}</div>
+                <div class="text-center fw-bold m-2 fs-3 p-2 " style="font-family: cursive; color: rgb(76, 34, 49);">{{ room_name }}
+                    
+                </div>
+                {% if group.personal == False %}
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                      Members
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                        
+                        {% for member in group.grpuser_set.all %}
+
+                            {% if member.user != user %}
+                            <li>
+                                <form action="/room/" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="member" value="{{ member.user.id }}">
+                                    <input type="hidden" name="chat_name" value="{{ member.user.username }}">
+                                    <button class="dropdown-item" type="submit">{{ member.user.username }}</button>
+                                </form>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item" href="/account/">{{ member.user.username }}</a>
+                            </li>
+                            {% endif %}
+                        
+                        {% endfor %}
+                        
+                    </ul>
+                </div>
+                {% endif %}
                 <div class="container border border-2 my-4 p-5 w-50 overflow-auto" style="height: 800px;">
                     <div id="chat-log" class="m-2 ">
                         
@@ -163,7 +194,6 @@
                 const membersList = document.getElementById('list-members');
                 if (!data.msg){
                     
-                
                 data.members.forEach(member => {
                     let li = document.createElement('button');
                     
@@ -199,18 +229,18 @@
                 data.groups.forEach(group => {
                     let li = document.createElement('button');
                     
-                    li.classList.add('list-group-item','d-flex','fs-4','w-100','px-5','send');
+                    li.classList.add('fs-4','w-100','bg-transparent','border-0');
                     
                     li.type = 'submit';
-                   
-                    li.textContent = member.username;
+                    li.style.color = 'rgb(225, 201, 210)';
+                    li.textContent = group.name;
 
                     // Create form for each member
                     let form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '/room/';
-                    form.classList.add('w-100');
-                    form.style = 'background-color: rgb(176, 171, 171); border: 1px solid rgb(105, 5, 42);';
+                    form.classList.add('w-100','p-3','border','border-top-0','border-start-0','border-end-0','text-start');
+                    
 
                     let csrfInput = document.createElement('input');
                     csrfInput.type = 'hidden';

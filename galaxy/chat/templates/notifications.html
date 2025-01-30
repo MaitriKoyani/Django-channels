@@ -1,10 +1,10 @@
 {% extends 'index.html' %}
 {% block body %}
-<div class="container  p-2">
+<div class="container p-2">
     {% if request.user.receiver.first %}
     {% with members=request.user.receiver.first.sender.all %}
     {% for member in members %}
-    <div class="row m-2 border border-secondary bg-dark text-light rounded-3 w-50">
+    <div class="row border border-secondary text-center rounded-3 w-50" style="background-color: rgb(123, 76, 94);color:  rgb(225, 201, 210);">
         <div class="col-4">
             <div>
                 <img src="/media/{{member.profile.image}}" alt="Profile pic" class=" m-2" style = "width: 100px; height: 100px; border-radius: 50%;" id = "pic">
@@ -15,11 +15,12 @@
             </div>
         </div>
         <div class="col-8 text-start align-middle p-5 ">
-            <div class="text-secondary fs-3 row m-2" id = "uid">{{member.profile.up_id}}</div>
+            <div class="row fs-3 row m-2" id = "uid">{{member.profile.up_id}}</div>
+            <div class="row text-start ">
+                <a href="/api/addfriend/{{member.id}}/" class="btn btn-outline-light">Accept friend request</a>
+            </div>
         </div>
-        <div class="col-8 text-start align-middle p-5 ">
-            <a href="/api/addfriend/{{member.id}}/" class="btn btn-outline-secondary">Accept friend request</a>
-        </div>
+        
     </div>
     {% endfor %} 
     {% endwith %}
