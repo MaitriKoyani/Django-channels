@@ -6,7 +6,7 @@
             <div class="row px-4 border-bottom border-light " >
                 <div class="col-2 pt-2">
                     <a href="/account/">
-                        <img src="/media/{{user.profile.image}}" alt="Profile pic" class="m-2" style = "width: 50px; height: 50px; border-radius: 50%;" id = "pic">
+                        <img src="/media/{{user.profile.image}}" alt="profile_pic" onerror="this.src='{{user.profile.image}}'" class="m-2" style = "width: 50px; height: 50px; border-radius: 50%;" id = "pic">
                     </a>
                 </div>
                 <div class="col-7 ps-5 pt-4 fs-4 " style="color: rgb(225, 201, 210);">{{user.username}}</div>

@@ -5,7 +5,7 @@
     <div class="row m-2">
         <div class="col-4">
             <div>
-                <img src="" alt="Profile pic" class=" m-2" style = "width: 250px; height: 250px; border-radius: 50%;" id = "pic">
+                <img src="{{user.profile.image}}" alt="Profile pic" onerror="this.src='{{user.profile.image}}'" class=" m-2" style = "width: 250px; height: 250px; border-radius: 50%;" id = "pic">
                 
                 <div class="text-light fs-4" id = "username">
                     {{username}}
